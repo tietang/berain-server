@@ -2,10 +2,12 @@ package fengfei.berain.server;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import models.RainModel;
 
 import com.netflix.curator.framework.CuratorFramework;
+import com.netflix.curator.framework.recipes.locks.InterProcessMutex;
 
 public class ZKPersistence implements Persistence {
 
@@ -22,12 +24,14 @@ public class ZKPersistence implements Persistence {
 	}
 
 	@Override
-	public RainModel addNode(String pid, String key, String value) throws Exception {
+	public RainModel addNode(String pid, String key, String value)
+			throws Exception {
 		String parentPath = Focus.id2path(pid);
 
 		String path = parentPath + SEPARATOR + key;
 		System.out.println("-path----------------------------:  " + path);
-		client.inTransaction().create().forPath(path, value.getBytes()).and().commit();
+		client.inTransaction().create().forPath(path, value.getBytes()).and()
+				.commit();
 		parentPath = "".equals(parentPath) ? ROOT_PATH : parentPath;
 		RainModel model = new RainModel();
 		model.id = path.replaceAll("[/]", "_");
@@ -45,7 +49,8 @@ public class ZKPersistence implements Persistence {
 		String path = Focus.id2path(id);
 		String parentPath = Focus.getParent(path);
 		String key = Focus.getKey(path);
-		client.inTransaction().setData().forPath(path, value.getBytes()).and().commit();
+		client.inTransaction().setData().forPath(path, value.getBytes()).and()
+				.commit();
 
 		RainModel model = new RainModel();
 		model.id = path.replaceAll("[/]", "_");
@@ -150,4 +155,69 @@ public class ZKPersistence implements Persistence {
 		return models;
 	}
 
+	public static final String LOCKPATH = "/copylock";
+	public static final long MAXWAIT = 60;
+	public static final TimeUnit WAITUNIT = TimeUnit.SECONDS;
+
+	public boolean copy(String originalPath, String newPath) throws Exception {
+		InterProcessMutex lock = new InterProcessMutex(client, LOCKPATH);
+		if (lock.acquire(MAXWAIT, WAITUNIT)) {
+			try {
+				String value = get(originalPath);
+				create(newPath, value);
+
+				copyChildren(originalPath, newPath);
+			} finally {
+				lock.release();
+			}
+		}
+		return true;
+	}
+
+	public boolean create(String path, String value) throws Exception {
+		client.inTransaction().create().forPath(path, value.getBytes()).and()
+				.commit();
+		return true;
+	}
+
+	private void copyChildren(String originalPath, String newPath)
+			throws Exception {
+		List<RainModel> children = nextChildren(originalPath);
+		if (children == null || children.isEmpty()) {
+			return;
+		}
+		for (RainModel entry : children) {
+			String childPath = entry.getPath();
+			String newChildPath = childPath.replace(originalPath, newPath);
+			create(newChildPath, entry.getValue());
+			copyChildren(childPath, newChildPath);
+		}
+	}
+
+	public String get(String path) throws Exception {
+		byte[] data = client.getData().forPath(path);
+		return new String(data);
+	}
+
+	public List<RainModel> nextChildren(String parentPath) throws Exception {
+		List<RainModel> models = new ArrayList<>();
+		if (client.checkExists().forPath(parentPath) != null) {
+			List<String> paths = client.getChildren().forPath(parentPath);
+			for (String cpath : paths) {
+				String ppath = parentPath + SEPARATOR + cpath;
+				byte[] data = client.getData().forPath(ppath);
+				RainModel model = new RainModel();
+				model.key = getKey(cpath);
+				model.path = ppath;
+				model.value = new String(data);
+				models.add(model);
+			}
+		}
+		return models;
+	}
+
+	public static String getKey(String path) {
+		String[] ps = path.split("/");
+		return ps[ps.length - 1];
+	}
 }

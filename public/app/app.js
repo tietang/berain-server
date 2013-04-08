@@ -50,7 +50,7 @@ $(function() {
               // event.preventDefault();
               // this.toggle_select(event.currentTarget );
             }).bind("click.jstree", function(event, data) {
-              notify(data.rslt);
+             // notify(data.rslt);
             }).bind("select_node.jstree", function(event, data) {
 
           $("#pkey").val(data.rslt.obj.attr("key"));
@@ -61,10 +61,15 @@ $(function() {
                 id : data.rslt.obj.attr("_id")
               }, function(json) {
                 if (json.status && status != 'fail') {
+                  //form1
                   $("#pkey").val(json.attr.key);
                   $("#id").val(json.attr._id);
                   $("#pid").val(json.attr._id);
                   $("#pvalue").val(json.attr.svalue);
+                  //form0
+                  $("#cp_id").val(json.attr._id);
+                  $("#fpath").val(json.attr.path);
+                       
                 }
               });
             // notify(data.rslt.obj.attr("svalue"));
@@ -143,6 +148,8 @@ $(function() {
               }
             });
       });
+      
+      
   $("#form2").submit(function() {
         var pid = $('#pid').val();
         var key = $('#key').val();
@@ -171,8 +178,42 @@ $(function() {
             }, "text");
         return false;
       });
-    // refreshNode("_", false);
+
+ 
+  
+  $("#form0").submit(function() {
+        var id = $('#id').val();
+        var fpath = $('#fpath').val();
+        var tpath = $('#tpath').val();
+
+        if (id == '') {
+          notify("Please select node.");
+          return false;
+        }
+        if (tpath == '') {
+          notify("Please type to path.");
+          return false;
+        }
+        $.post("/copy/node", $(this).serialize(), function(data) {
+              // notify(pid);
+              refreshNode(id, false);
+			  $('#id').val("");
+              $('#fpath').val("");
+              $('#tpath').val("");
+              $.gritter.add({
+                    title : "Add status",
+                    text : data,
+                    class_name : 'gritter-green',
+                    sticky : false,
+                    time : 2000
+                  });
+            }, "text");
+        return false;
+      });
+
   });
+  
+
 
 function refreshNode(id, isParent) {
   var eid = "#rain" + id;

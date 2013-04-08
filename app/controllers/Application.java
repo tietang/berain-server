@@ -95,6 +95,27 @@ public class Application extends Admin {
 	}
 
 	@play.db.jpa.Transactional
+	public static void copyNode(String id) {
+		String fromPath = params.get("fpath");
+		String toPath = params.get("tpath");
+
+		try {
+			boolean updated = Focus.persistence.copy(fromPath, toPath);
+			if (updated) {
+				renderText("Update success. ");
+			} else {
+				renderText("Update fail. ");
+
+			}
+
+		} catch (Exception e) {
+			renderText("Update faile, server error. ");
+			e.printStackTrace();
+		}
+
+	}
+
+	@play.db.jpa.Transactional
 	public static void removeNode(String id) {
 		try {
 			RainModel another = Focus.persistence.removeNode(id);
@@ -167,9 +188,7 @@ public class Application extends Admin {
 						data.put("state", "closed");
 						data.put("children", new Object[] {});
 						datas.add(data);
-					} catch (
-							IllegalAccessException
-							| InvocationTargetException
+					} catch (IllegalAccessException | InvocationTargetException
 							| NoSuchMethodException e) {
 						e.printStackTrace();
 					}

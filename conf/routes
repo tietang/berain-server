@@ -12,6 +12,7 @@ GET		/get/node				Application.getNode
 POST    /add/node  				Application.addNode
 POST    /del/node  				Application.removeNode
 POST    /edit/node  			Application.editNode
+POST    /copy/node  			Application.copyNode
 GET 	/namespace				Application.namespace
 #for service
 *	  /logon		 			Admin.logon

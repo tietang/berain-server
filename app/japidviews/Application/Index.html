@@ -65,26 +65,28 @@ hr {
 			</form>
 
 		</div>
-	</div>
-	<!-- <div class="offset4 span8">
-		<div class="well">
-			<h4>Remove</h4>
+	</div>	
+	
+	<div class="span4">
+		<div class="well padding3">
+			<h4>Copy</h4>
 			<hr />
-			<form action="/copy/node" id="form3" method="post">
-				<input id="cid" name="cid" type="hidden" />
-				<div class="row">
-					<div class="span3">
-						<label for="pkey">Source Path</label><input id="pkey" name="pkey" type="text" placeholder="pKey" />
-					</div>
-					<div class="span3">
-						<label for="pkey">Target Path</label><input id="pkey" name="pkey" type="text" placeholder="pKey" />
-					</div>
-					<div class="span8">
-						<input type="button" value="Cpoy" class="btn" id="copy" />
-					</div>
-				</div>
+			<form action="/copy/node" id="form0" method="post">
+
+				<input id="cp_id" name="id" type="hidden" placeholder="id" />
+
+				<p class="control-group ">
+					<label for="pkey">From path</label><input id="fpath" name="fpath" type="text" placeholder="from path" disabled="disabled" />
+				</p>
+				<p class="control-group ">
+					<label for="pvalue">To path</label> <input id="tpath" name="tpath" type="text" placeholder="to path" />
+				</p>
+				<p>
+					<input type="button" value="Copy" class="btn" id="copy" />
+				</p>
 			</form>
 
 		</div>
-	</div> -->
+	</div>
+
 </div>

@@ -10,7 +10,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 public class DbPersistence implements Persistence {
 
- 
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -41,7 +40,7 @@ public class DbPersistence implements Persistence {
 			another.leaf = (int) count;
 			another.save();
 		}
- 
+
 		System.out.println(model);
 		return model;
 
@@ -155,7 +154,8 @@ public class DbPersistence implements Persistence {
 
 	public void initNamespace() {
 		Focus.namespace = Focus.removeLastSlash(Focus.namespace);
-		List<RainModel> models = RainModel.find("path=?", Focus.namespace).fetch();
+		List<RainModel> models = RainModel.find("path=?", Focus.namespace)
+				.fetch();
 		if (models == null || models.size() == 0) {
 			RainModel model = new RainModel();
 			String key = Focus.getKey(Focus.namespace);
@@ -174,6 +174,10 @@ public class DbPersistence implements Persistence {
 
 		}
 
+	}
+
+	public boolean copy(String originalPath, String newPath) throws Exception {
+		return true;
 	}
 
 	static final String START_ROOT_ID = "_app_root";

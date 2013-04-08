@@ -26,4 +26,5 @@ public interface Persistence {
 
 	RainModel getNodeByPath(String path) throws Exception;
 
+	boolean copy(String originalPath, String newPath) throws Exception;
 }
