@@ -35,7 +35,7 @@ public class ServerInitPlugin extends PlayPlugin {
 		Properties p = Play.configuration;
 		String pst = p.getProperty(Persistence);
 		String namespace = p.getProperty(Namespace);
-		Focus.namespace = namespace;
+		//
 		if (pst.equalsIgnoreCase(Zookeeper)) {
 			startZookeeperClient();
 			logger.info("start zookeeper persistence");
@@ -57,7 +57,7 @@ public class ServerInitPlugin extends PlayPlugin {
 	private void startZookeeperClient() {
 		Properties p = Play.configuration;
 		String host = p.getProperty("zk.host");
-		String namespace = Focus.namespace;
+		String namespace = p.getProperty(Namespace);
 		int timeout = 5000;
 		int retryTimes = Integer.MAX_VALUE;
 		int sleepRetry = 1000;
@@ -80,31 +80,32 @@ public class ServerInitPlugin extends PlayPlugin {
 			if (null != ssleepRetry && !"".equals(ssleepRetry)) {
 				sleepRetry = Integer.parseInt(ssleepRetry);
 			}
-			client = CuratorFrameworkFactory
-					.builder()
-					.connectString(host)
+			client = CuratorFrameworkFactory.builder().connectString(host)
 					.namespace(namespace)
 					.retryPolicy(new RetryNTimes(retryTimes, sleepRetry))
-					.connectionTimeoutMs(timeout)
-					.build();
+					.connectionTimeoutMs(timeout).build();
 			client.start();
+			Focus.namespace = "/root";
 			persistence = new ZKPersistence(client);
-		} catch (IOException e) {
+			if (client.checkExists().forPath(Focus.namespace) == null) {
+				client.inTransaction().create()
+						.forPath(Focus.namespace, "root".getBytes()).and()
+						.commit();
+			}
+		} catch (Exception e) {
 
 			e.printStackTrace();
 		}
 	}
 
 	public static void main(String[] args) throws Exception {
-		CuratorFramework client = CuratorFrameworkFactory
-				.builder()
-				.connectString("localhost:2181")
-				.namespace("/test")
+		CuratorFramework client = CuratorFrameworkFactory.builder()
+				.connectString("localhost:2181").namespace("/test")
 				.retryPolicy(new RetryNTimes(100, 1222))
-				.connectionTimeoutMs(12222)
-				.build();
+				.connectionTimeoutMs(12222).build();
 		client.start();
-		client.inTransaction().create().forPath("/k1", "v1".getBytes()).and().commit();
+		client.inTransaction().create().forPath("/k1", "v1".getBytes()).and()
+				.commit();
 	}
 
 }
